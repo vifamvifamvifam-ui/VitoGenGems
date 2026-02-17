@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen Gems - Generator Puzzles</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>GEN GEMS</h1>
+            <div id="level-info">LEVEL <span id="level-display">1</span></div>
+        </header>
+
+        <div id="mission-brief">
+            <p>WORKERS WORKING</p>
+            <p>YOUR MISSION</p>
+            <p>IS TO FIX THE GENERATOR</p>
+        </div>
+        
+        <div id="game-area">
+            <canvas id="game-canvas"></canvas>
+            <div id="ui-overlay" class="hidden">
+                <h2 id="overlay-message">WORKERS WORKING!</h2>
+                <button id="next-level-btn">NEXT SEQUENCE</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="reset-btn">RESET SYSTEM</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+/**
+ * Gen Gems - Based on Forsaken's Generator Puzzles
+ * A connection puzzle game where you link matching colored dots.
+ */
+
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+const gameArea = document.getElementById('game-area');
+const levelDisplay = document.getElementById('level-display');
+const overlay = document.getElementById('ui-overlay');
+const overlayMessage = document.getElementById('overlay-message');
+const nextLevelBtn = document.getElementById('next-level-btn');
+const resetBtn = document.getElementById('reset-btn');
+
+
+// Game State
+let currentLevel = 0;
+let grid = []; // The static level layout (endpoints)
+let gridSize = 5;
+let cellSize = 0;
+let paths = {}; // { colorId: [{r, c}, {r, c}...] }
+let isDragging = false;
+let currentPathColor = null;
+
+// Configuration
+const COLORS = {
+    1: '#FF6961', // Pastel Red
+    2: '#77DD77', // Pastel Green
+    3: '#AEC6CF', // Pastel Blue
+    4: '#FDFD96', // Pastel Yellow
+    5: '#F49AC2', // Pastel Magenta
+    6: '#89CFF0'  // Pastel Cyan
+};
+
+const LEVELS = [
+    {
+        size: 5,
+        grid: [
+            [1, 0, 0, 0, 2],
+            [0, 0, 3, 0, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 2, 0, 3],
+            [0, 0, 0, 0, 0]
+        ]
+    },
+    {
+        size: 5,
+        grid: [
+            [1, 0, 0, 2, 0],
+            [0, 0, 3, 0, 0],
+            [1, 0, 0, 4, 3],
+            [0, 0, 2, 0, 0],
+            [4, 0, 0, 0, 0]
+        ]
+    }
+];
+
+function initGame() {
+    loadLevel(currentLevel);
+    
+    // Set canvas size based on CSS dimensions
+    const rect = gameArea.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    window.addEventListener('resize', () => {
+        const r = gameArea.getBoundingClientRect();
+        canvas.width = r.width;
+        canvas.height = r.height;
+        resizeCanvas();
+    });
+    
+    // Event Listeners
+    canvas.addEventListener('mousedown', handleInputStart);
+    canvas.addEventListener('mousemove', handleInputMove);
+    window.addEventListener('mouseup', handleInputEnd);
+    
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent scrolling
+        handleInputStart(e.touches[0]);
+    }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        handleInputMove(e.touches[0]);
+    }, { passive: false });
+    window.addEventListener('touchend', handleInputEnd);
+
+    resetBtn.addEventListener('click', () => loadLevel(currentLevel));
+    nextLevelBtn.addEventListener('click', () => {
+        currentLevel = (currentLevel + 1) % LEVELS.length;
+        loadLevel(currentLevel);
+        overlay.classList.remove('visible');
+    });
+    
+    requestAnimationFrame(gameLoop);
+}
+
+function loadLevel(levelIndex) {
+    const levelData = LEVELS[levelIndex];
+    gridSize = levelData.size;
+    grid = levelData.grid.map(row => [...row]);
+    
+    // Reset paths
+    paths = {};
+    
+    levelDisplay.textContent = levelIndex + 1;
+    overlay.classList.remove('visible');
+    resizeCanvas();
+}
+
+function resizeCanvas() {
+    cellSize = canvas.width / gridSize;
+    render();
+}
+
+function getCellFromInput(input) {
+    const rect = canvas.getBoundingClientRect();
+    const x = input.clientX - rect.left;
+    const y = input.clientY - rect.top;
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+    return { col, row };
+}
+
+function handleInputStart(input) {
+    const { col, row } = getCellFromInput(input);
+    
+    if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) return;
+    
+    // check if clicking on a start/end dot
+    const cellValue = grid[row][col];
+    
+    if (cellValue > 0) {
+        // Started on a dot source
+        isDragging = true;
+        currentPathColor = cellValue;
+        paths[currentPathColor] = [{r: row, c: col}];
+    } else {
+        // Check if clicking on an existing path
+        for (const [colorId, path] of Object.entries(paths)) {
+            // Check endpoints of the path to potentially extend it
+            const lastPoint = path[path.length - 1];
+            if (lastPoint && lastPoint.r === row && lastPoint.c === col) {
+                 isDragging = true;
+                 currentPathColor = parseInt(colorId);
+                 // We kept the path, now we can extend it
+                 return;
+            }
+            // If clicking middle of path, could implement cutting/trimming here
+            // For now, simpler: only start from sources or ends
+        }
+    }
+}
+
+function handleInputMove(input) {
+    if (!isDragging || !currentPathColor) return;
+    
+    const { col, row } = getCellFromInput(input);
+    
+    if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) return;
+
+    const currentPath = paths[currentPathColor];
+    const lastPoint = currentPath[currentPath.length - 1];
+    
+    // 1. Check if we moved to a new cell
+    if (lastPoint.r === row && lastPoint.c === col) return;
+    
+    // 2. Check if the move is orthogonal (no diagonals)
+    const dRow = Math.abs(row - lastPoint.r);
+    const dCol = Math.abs(col - lastPoint.c);
+    if ((dRow === 1 && dCol === 0) || (dRow === 0 && dCol === 1)) {
+        
+        // 3. Handling Backtracking
+        if (currentPath.length > 1) {
+            const prevPoint = currentPath[currentPath.length - 2];
+            if (prevPoint.r === row && prevPoint.c === col) {
+                // We moved back to the previous cell, remove the last one
+                currentPath.pop();
+                return;
+            }
+        }
+        
+        // 4. Collision Detection
+        // Prevent running into own path (except backtracking cached above)
+        if (pathContains(currentPath, row, col)) return;
+        
+        // Prevent running into other paths
+        // Special case: If we hit another path, we might "cut" it? 
+        // Forsaken/Flow behavior: overlapping usually blocks OR cuts. 
+        // Let's implement BLOCKING for now to be safe, easier to make puzzles solvable.
+        if (isCellOccupied(row, col)) return;
+        
+        // 5. Check if target is valid
+        // Can only enter empty cells OR the matching color endpoint
+        const targetValue = grid[row][col];
+        if (targetValue !== 0 && targetValue !== currentPathColor) return; // Blocked by wrong color dot
+        
+        // All checks passed, add point
+        currentPath.push({r: row, c: col});
+        
+        // Check win condition immediately upon connection
+        if (targetValue === currentPathColor) {
+             spawnParticles(col, row, COLORS[currentPathColor]);
+             checkWinCondition();
+        }
+    }
+}
+
+function handleInputEnd() {
+    isDragging = false;
+    currentPathColor = null;
+}
+
+// Particles
+let particles = [];
+
+function spawnParticles(col, row, color) {
+    const x = col * cellSize + cellSize / 2;
+    const y = row * cellSize + cellSize / 2;
+    
+    for (let i = 0; i < 20; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            life: 1.0,
+            color: color
+        });
+    }
+}
+
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.02;
+        
+        if (p.life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, cellSize * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+}
+
+function pathContains(path, r, c) {
+    return path.some(p => p.r === r && p.c === c);
+}
+
+function isCellOccupied(r, c) {
+    for (const [colorId, path] of Object.entries(paths)) {
+        if (parseInt(colorId) === currentPathColor) continue; // Skip self check
+        if (pathContains(path, r, c)) return true;
+    }
+    return false;
+}
+
+function checkWinCondition() {
+    // 1. Are all colors connected?
+    // We check if every color present in the grid has a path that starts and ends at different sources
+    // Actually simpler: For each color X, does paths[X] exist and connect two sources?
+    
+    // Identify required colors from grid
+    const requiredColors = new Set();
+    grid.forEach(row => row.forEach(val => {
+        if (val > 0) requiredColors.add(val);
+    }));
+    
+    let allConnected = true;
+    for (const color of requiredColors) {
+        const path = paths[color];
+        if (!path || path.length < 2) {
+            allConnected = false;
+            break;
+        }
+        
+        // Check start and end of path match grid sources
+        const start = path[0];
+        const end = path[path.length - 1];
+        
+        // A valid path must start at a source and end at a source
+        // And those sources must be distinct (not strictly required if logic prevents loops, but good check)
+        if (grid[start.r][start.c] !== color || grid[end.r][end.c] !== color) {
+            allConnected = false;
+            break;
+        }
+    }
+    
+    // 2. Is the grid full? (Optional in some versions, usually required for 'Perfect')
+    // Let's stick to "All Connected" for now as the primary win condition
+    
+    if (allConnected) {
+        setTimeout(() => {
+            overlayMessage.textContent = "GENERATOR ONLINE";
+            overlay.classList.add('visible');
+        }, 300);
+    }
+}
+
+function gameLoop() {
+    updateParticles();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+
+function render() {
+    const time = Date.now() / 1000;
+    
+    // Clear
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Grid Lines
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= gridSize; i++) {
+        const pos = i * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(pos, 0); ctx.lineTo(pos, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, pos); ctx.lineTo(canvas.width, pos);
+        ctx.stroke();
+    }
+    
+    // Draw Paths
+    for (const [colorId, path] of Object.entries(paths)) {
+        if (!path || path.length < 2) continue;
+        
+        const color = COLORS[colorId];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = cellSize * 0.4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 15;
+        
+        ctx.beginPath();
+        const startX = path[0].c * cellSize + cellSize/2;
+        const startY = path[0].r * cellSize + cellSize/2;
+        ctx.moveTo(startX, startY);
+        
+        for (let i = 1; i < path.length; i++) {
+            const p = path[i];
+            const x = p.c * cellSize + cellSize/2;
+            const y = p.r * cellSize + cellSize/2;
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
+
+    // Draw Static Dots (Sources)
+    for(let r = 0; r < gridSize; r++) {
+        for(let c = 0; c < gridSize; c++) {
+            const cellValue = grid[r][c];
+            if (cellValue > 0) {
+                // Pulse effect
+                let radius = cellSize * 0.25;
+                // Add sine wave pulse
+                radius += Math.sin(time * 3) * (cellSize * 0.02);
+                
+                drawDot(c, r, COLORS[cellValue], radius);
+            }
+        }
+    }
+    
+    drawParticles();
+}
+
+function drawDot(col, row, color, radius) {
+    const x = col * cellSize + cellSize / 2;
+    const y = row * cellSize + cellSize / 2;
+    
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+// Start
+initGame();
+
