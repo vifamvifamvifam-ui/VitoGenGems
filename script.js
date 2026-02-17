@@ -34,23 +34,52 @@ const COLORS = {
 
 const LEVELS = [
     {
+        // Level 1 - 4 colors
+        // Solutions:
+        //   Color 1: (0,0)→(0,1)→(0,2)→(1,2)→(2,2)
+        //   Color 2: (0,4)→(0,3)→(1,3)→(1,4)→(2,4)→(3,4)
+        //   Color 3: (2,0)→(1,0)→(1,1)→(2,1)→(3,1)→(3,0)
+        //   Color 4: (2,3)→(3,3)→(3,2)→(4,2)→(4,1)→(4,0)
         size: 5,
         grid: [
             [1, 0, 0, 0, 2],
-            [0, 0, 3, 0, 0],
-            [0, 1, 0, 0, 0],
-            [0, 0, 2, 0, 3],
-            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0],
+            [3, 0, 1, 4, 0],
+            [3, 0, 0, 0, 2],
+            [4, 0, 0, 0, 0]
         ]
     },
     {
+        // Level 2 - 5 colors
+        // Solutions:
+        //   Color 1: (0,0)→(0,1)→(0,2)→(0,3)→(1,3)
+        //   Color 2: (0,4)→(1,4)→(2,4)→(2,3)→(2,2)
+        //   Color 3: (1,0)→(2,0)→(3,0)→(3,1)→(3,2)→(3,3)→(3,4)→(4,4)
+        //   Color 4: (1,2)→(1,1)→(2,1)
+        //   Color 5: (4,0)→(4,1)→(4,2)→(4,3)
         size: 5,
         grid: [
-            [1, 0, 0, 2, 0],
-            [0, 0, 3, 0, 0],
-            [1, 0, 0, 4, 3],
-            [0, 0, 2, 0, 0],
-            [4, 0, 0, 0, 0]
+            [1, 0, 0, 0, 2],
+            [3, 0, 4, 1, 0],
+            [0, 4, 2, 0, 0],
+            [0, 0, 0, 0, 0],
+            [5, 0, 0, 5, 3]
+        ]
+    },
+    {
+        // Level 3 - 4 colors
+        // Solutions:
+        //   Color 1: (0,0)→(1,0)→(1,1)→(1,2)→(0,2)
+        //   Color 2: (0,4)→(0,3)→(1,3)→(1,4)→(2,4)→(3,4)→(4,4)
+        //   Color 3: (4,0)→(3,0)→(2,0)→(2,1)→(2,2)→(2,3)→(3,3)→(3,2)→(3,1)
+        //   Color 4: (4,1)→(4,2)→(4,3)
+        size: 5,
+        grid: [
+            [1, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 3, 0, 0, 0],
+            [3, 4, 0, 4, 2]
         ]
     }
 ];
@@ -58,16 +87,11 @@ const LEVELS = [
 function initGame() {
     loadLevel(currentLevel);
     
-    // Set canvas size based on CSS dimensions
-    const rect = gameArea.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    // Set canvas size - make it square based on container width
+    sizeCanvas();
     
     window.addEventListener('resize', () => {
-        const r = gameArea.getBoundingClientRect();
-        canvas.width = r.width;
-        canvas.height = r.height;
-        resizeCanvas();
+        sizeCanvas();
     });
     
     // Event Listeners
@@ -108,9 +132,24 @@ function loadLevel(levelIndex) {
     resizeCanvas();
 }
 
-function resizeCanvas() {
-    cellSize = canvas.width / gridSize;
+function sizeCanvas() {
+    const container = document.getElementById('game-container');
+    const maxWidth = container.getBoundingClientRect().width;
+    // Also cap to viewport height minus space for header/controls (~200px)
+    const maxHeight = window.innerHeight - 200;
+    const size = Math.min(maxWidth, maxHeight);
+    
+    canvas.width = size;
+    canvas.height = size;
+    gameArea.style.width = size + 'px';
+    gameArea.style.height = size + 'px';
+    
+    cellSize = size / gridSize;
     render();
+}
+
+function resizeCanvas() {
+    sizeCanvas();
 }
 
 function getCellFromInput(input) {
@@ -302,7 +341,6 @@ function checkWinCondition() {
     
     if (allConnected) {
         setTimeout(() => {
-            overlayMessage.textContent = "GENERATOR ONLINE";
             overlay.classList.add('visible');
         }, 300);
     }
