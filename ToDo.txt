@@ -1,0 +1,9 @@
+Lines go past the 2nd dot even when connected
+
+game has to shrink when player using iPhone. 
+the game has to adjust size to the players screen.
+
+Use best practices for mobile devices.
+Use MIN, MAX, CLAMP, VW, VH
+
+
