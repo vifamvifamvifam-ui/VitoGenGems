@@ -69,6 +69,7 @@ h1 {
 canvas {
     display: block;
     cursor: crosshair;
+    touch-action: none;
 }
 
 #ui-overlay {
@@ -179,4 +180,66 @@ button:active {
     font-size: 1.1rem;
     letter-spacing: 3px;
     animation: pulse 2s infinite;
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 480px) {
+    #game-container {
+        padding: 10px;
+    }
+
+    header {
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+
+    #level-info {
+        font-size: 0.9rem;
+    }
+
+    #mission-brief {
+        margin-bottom: 10px;
+    }
+
+    #mission-brief p {
+        margin: 5px 0;
+        font-size: 0.85rem;
+        letter-spacing: 2px;
+    }
+
+    button {
+        padding: 8px 18px;
+        font-size: 0.8rem;
+    }
+
+    #ui-overlay h2 {
+        font-size: 1.3rem;
+        margin-bottom: 14px;
+    }
+
+    #controls {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    #mission-brief p {
+        font-size: 0.75rem;
+    }
+
+    button {
+        padding: 6px 14px;
+        font-size: 0.7rem;
+    }
+
+    #ui-overlay h2 {
+        font-size: 1.1rem;
+    }
 }

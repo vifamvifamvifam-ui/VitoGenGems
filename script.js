@@ -135,9 +135,14 @@ function loadLevel(levelIndex) {
 function sizeCanvas() {
     const container = document.getElementById('game-container');
     const maxWidth = container.getBoundingClientRect().width;
-    // Also cap to viewport height minus space for header/controls (~200px)
-    const maxHeight = window.innerHeight - 200;
-    const size = Math.min(maxWidth, maxHeight);
+    // Measure actual header, mission-brief, and controls heights
+    const header = document.querySelector('header');
+    const missionBrief = document.getElementById('mission-brief');
+    const controls = document.getElementById('controls');
+    const containerPadding = parseFloat(getComputedStyle(container).paddingTop) * 2;
+    const usedHeight = header.offsetHeight + missionBrief.offsetHeight + controls.offsetHeight + containerPadding + 40; // 40px for margins
+    const maxHeight = window.innerHeight - usedHeight;
+    const size = Math.max(Math.min(maxWidth, maxHeight), 200); // floor of 200px
     
     canvas.width = size;
     canvas.height = size;
