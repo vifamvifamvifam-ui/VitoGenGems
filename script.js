@@ -170,7 +170,9 @@ function handleInputStart(input) {
     const cellValue = grid[row][col];
     
     if (cellValue > 0) {
-        // Started on a dot source
+        // Check if this dot is the END of a completed path (connected pair)
+        // If so, clicking on it should restart the whole color's path from this dot
+        // (which resets the connection — the path is no longer complete)
         isDragging = true;
         currentPathColor = cellValue;
         paths[currentPathColor] = [{r: row, c: col}];
@@ -199,48 +201,78 @@ function handleInputMove(input) {
     if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) return;
 
     const currentPath = paths[currentPathColor];
-    const lastPoint = currentPath[currentPath.length - 1];
+    let lastPoint = currentPath[currentPath.length - 1];
     
     // 1. Check if we moved to a new cell
     if (lastPoint.r === row && lastPoint.c === col) return;
     
-    // 2. Check if the move is orthogonal (no diagonals)
-    const dRow = Math.abs(row - lastPoint.r);
-    const dCol = Math.abs(col - lastPoint.c);
-    if ((dRow === 1 && dCol === 0) || (dRow === 0 && dCol === 1)) {
+    // Calculate total distance (allows for skipped cells during fast mouse movement)
+    const totalDRow = row - lastPoint.r;
+    const totalDCol = col - lastPoint.c;
+    
+    // Only allow movement along one axis at a time (orthogonal)
+    // If mouse moved diagonally, pick the dominant axis
+    let stepR = 0;
+    let stepC = 0;
+    if (Math.abs(totalDRow) >= Math.abs(totalDCol)) {
+        stepR = totalDRow > 0 ? 1 : -1;
+    } else {
+        stepC = totalDCol > 0 ? 1 : -1;
+    }
+    
+    // Walk one cell at a time toward the target
+    let curR = lastPoint.r;
+    let curC = lastPoint.c;
+    
+    while (true) {
+        if (!isDragging || !currentPathColor) break;
         
-        // 3. Handling Backtracking
+        const nextR = curR + stepR;
+        const nextC = curC + stepC;
+        
+        // Bounds check
+        if (nextR < 0 || nextR >= gridSize || nextC < 0 || nextC >= gridSize) break;
+        
+        // Did we reach or pass the target?
+        if (stepR !== 0 && ((stepR > 0 && nextR > row) || (stepR < 0 && nextR < row))) break;
+        if (stepC !== 0 && ((stepC > 0 && nextC > col) || (stepC < 0 && nextC < col))) break;
+        
+        // Re-fetch lastPoint since path may have changed
+        lastPoint = currentPath[currentPath.length - 1];
+        
+        // Handling Backtracking
         if (currentPath.length > 1) {
             const prevPoint = currentPath[currentPath.length - 2];
-            if (prevPoint.r === row && prevPoint.c === col) {
-                // We moved back to the previous cell, remove the last one
+            if (prevPoint.r === nextR && prevPoint.c === nextC) {
                 currentPath.pop();
-                return;
+                curR = nextR;
+                curC = nextC;
+                continue;
             }
         }
         
-        // 4. Collision Detection
-        // Prevent running into own path (except backtracking cached above)
-        if (pathContains(currentPath, row, col)) return;
+        // Collision Detection — prevent running into own path
+        if (pathContains(currentPath, nextR, nextC)) break;
         
         // Prevent running into other paths
-        // Special case: If we hit another path, we might "cut" it? 
-        // Forsaken/Flow behavior: overlapping usually blocks OR cuts. 
-        // Let's implement BLOCKING for now to be safe, easier to make puzzles solvable.
-        if (isCellOccupied(row, col)) return;
+        if (isCellOccupied(nextR, nextC)) break;
         
-        // 5. Check if target is valid
-        // Can only enter empty cells OR the matching color endpoint
-        const targetValue = grid[row][col];
-        if (targetValue !== 0 && targetValue !== currentPathColor) return; // Blocked by wrong color dot
+        // Check if target cell is valid
+        const targetValue = grid[nextR][nextC];
+        if (targetValue !== 0 && targetValue !== currentPathColor) break;
         
         // All checks passed, add point
-        currentPath.push({r: row, c: col});
+        currentPath.push({r: nextR, c: nextC});
+        curR = nextR;
+        curC = nextC;
         
-        // Check win condition immediately upon connection
+        // If we reached the matching endpoint, stop dragging immediately
         if (targetValue === currentPathColor) {
-             spawnParticles(col, row, COLORS[currentPathColor]);
-             checkWinCondition();
+            spawnParticles(nextC, nextR, COLORS[currentPathColor]);
+            isDragging = false;
+            currentPathColor = null;
+            checkWinCondition();
+            break;
         }
     }
 }
