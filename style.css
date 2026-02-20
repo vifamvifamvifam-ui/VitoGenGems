@@ -1,245 +1,298 @@
 :root {
-    --bg-color: #000000;
-    --grid-bg: #111111;
-    --line-color: #333333;
-    --text-color: #D4AF37; /* Metallic Gold */
-    --accent-color: #D4AF37;
-    --accent-glow: 0 0 10px #D4AF37;
-    --danger-color: #ff3333;
+  --bg-color: #000000;
+  --grid-bg: #111111;
+  --line-color: #333333;
+  --text-color: #d4af37; /* Metallic Gold */
+  --accent-color: #d4af37;
+  --accent-glow: 0 0 10px #d4af37;
+  --danger-color: #ff3333;
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: auto;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Roboto", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: auto;
 }
 
 #game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
 }
 
 header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-family: 'Orbitron', sans-serif;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-family: "Orbitron", sans-serif;
 }
 
 h1 {
-    font-size: 2rem;
-    color: var(--accent-color);
-    text-shadow: var(--accent-glow);
-    letter-spacing: 2px;
-    animation: textFlicker 3s infinite alternate;
+  font-size: 2rem;
+  color: var(--accent-color);
+  text-shadow: var(--accent-glow);
+  letter-spacing: 2px;
+  animation: textFlicker 3s infinite alternate;
 }
 
 #level-info {
-    font-size: 1.2rem;
-    color: #888;
+  font-size: 1.2rem;
+  color: #888;
 }
 
 #game-area {
-    position: relative;
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: var(--grid-bg);
-    border: 1px solid #333;
+  position: relative;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--grid-bg);
+  border: 1px solid #333;
 }
 
 canvas {
-    display: block;
-    cursor: crosshair;
-    touch-action: none;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
 }
 
 #ui-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #ui-overlay.visible {
-    opacity: 1;
-    pointer-events: all;
+  opacity: 1;
+  pointer-events: all;
 }
 
 #ui-overlay h2 {
-    font-family: 'Orbitron', sans-serif;
-    color: var(--accent-color);
-    margin-bottom: 20px;
-    font-size: 2rem;
-    text-shadow: 0 0 20px var(--accent-color);
-    animation: pulse 1.5s infinite;
+  font-family: "Orbitron", sans-serif;
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  font-size: 2rem;
+  text-shadow: 0 0 20px var(--accent-color);
+  animation: pulse 1.5s infinite;
 }
 
 button {
-    background: rgba(212, 175, 55, 0.1);
-    border: 2px solid var(--accent-color);
-    color: var(--accent-color);
-    padding: 12px 30px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
-    border-radius: 4px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  padding: 12px 30px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+  border-radius: 4px;
 }
 
 button:hover {
-    background: var(--accent-color);
-    color: var(--bg-color);
-    box-shadow: 0 0 20px var(--accent-color);
-    transform: translateY(-2px);
+  background: var(--accent-color);
+  color: var(--bg-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  transform: translateY(-2px);
 }
 
 button:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 #controls {
-    margin-top: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+  margin-top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 #reset-btn {
-    border-color: #ff5555;
-    color: #ff5555;
-    box-shadow: 0 0 5px rgba(255, 85, 85, 0.2);
+  border-color: #ff5555;
+  color: #ff5555;
+  box-shadow: 0 0 5px rgba(255, 85, 85, 0.2);
 }
 
 #reset-btn:hover {
-    background: #ff5555;
-    color: white;
-    box-shadow: 0 0 15px #ff5555;
+  background: #ff5555;
+  color: white;
+  box-shadow: 0 0 15px #ff5555;
 }
 
 .hidden {
-    display: none !important;
+  display: none !important;
+}
+
+.flash-border {
+  animation: borderFlash 1.5s ease-in-out;
+}
+
+@keyframes borderFlash {
+  0% {
+    border-color: #333;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  }
+  20% {
+    border-color: #ffffff;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 1);
+  }
+  40% {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.8);
+  }
+  60% {
+    border-color: #ffffff;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 1);
+  }
+  80% {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.8);
+  }
+  100% {
+    border-color: #333;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  }
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes textFlicker {
-    0% { opacity: 1; }
-    95% { opacity: 1; }
-    96% { opacity: 0.8; }
-    97% { opacity: 1; }
-    98% { opacity: 0.9; }
-    99% { opacity: 1; }
-    100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.8;
+  }
+  97% {
+    opacity: 1;
+  }
+  98% {
+    opacity: 0.9;
+  }
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 #mission-brief {
-    text-align: center;
-    margin-bottom: 20px;
-    font-family: 'Orbitron', sans-serif;
-    color: var(--accent-color);
-    text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: "Orbitron", sans-serif;
+  color: var(--accent-color);
+  text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
 }
 
 #mission-brief p {
-    margin: 10px 0;
-    font-size: 1.1rem;
-    letter-spacing: 3px;
-    animation: pulse 2s infinite;
+  margin: 10px 0;
+  font-size: 1.1rem;
+  letter-spacing: 3px;
+  animation: pulse 2s infinite;
 }
 
 /* ===== Mobile Responsive ===== */
 @media (max-width: 480px) {
-    #game-container {
-        padding: 10px;
-    }
+  #game-container {
+    padding: 10px;
+  }
 
-    header {
-        margin-bottom: 10px;
-    }
+  header {
+    margin-bottom: 10px;
+  }
 
-    h1 {
-        font-size: 1.4rem;
-    }
+  h1 {
+    font-size: 1.4rem;
+  }
 
-    #level-info {
-        font-size: 0.9rem;
-    }
+  #level-info {
+    font-size: 0.9rem;
+  }
 
-    #mission-brief {
-        margin-bottom: 10px;
-    }
+  #mission-brief {
+    margin-bottom: 10px;
+  }
 
-    #mission-brief p {
-        margin: 5px 0;
-        font-size: 0.85rem;
-        letter-spacing: 2px;
-    }
+  #mission-brief p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+  }
 
-    button {
-        padding: 8px 18px;
-        font-size: 0.8rem;
-    }
+  button {
+    padding: 8px 18px;
+    font-size: 0.8rem;
+  }
 
-    #ui-overlay h2 {
-        font-size: 1.3rem;
-        margin-bottom: 14px;
-    }
+  #ui-overlay h2 {
+    font-size: 1.3rem;
+    margin-bottom: 14px;
+  }
 
-    #controls {
-        margin-top: 10px;
-    }
+  #controls {
+    margin-top: 10px;
+  }
 }
 
 @media (max-width: 360px) {
-    h1 {
-        font-size: 1.2rem;
-    }
+  h1 {
+    font-size: 1.2rem;
+  }
 
-    #mission-brief p {
-        font-size: 0.75rem;
-    }
+  #mission-brief p {
+    font-size: 0.75rem;
+  }
 
-    button {
-        padding: 6px 14px;
-        font-size: 0.7rem;
-    }
+  button {
+    padding: 6px 14px;
+    font-size: 0.7rem;
+  }
 
-    #ui-overlay h2 {
-        font-size: 1.1rem;
-    }
+  #ui-overlay h2 {
+    font-size: 1.1rem;
+  }
 }

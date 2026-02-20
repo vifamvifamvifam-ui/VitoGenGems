@@ -9,7 +9,6 @@ const gameArea = document.getElementById('game-area');
 const levelDisplay = document.getElementById('level-display');
 const overlay = document.getElementById('ui-overlay');
 const overlayMessage = document.getElementById('overlay-message');
-const nextLevelBtn = document.getElementById('next-level-btn');
 const resetBtn = document.getElementById('reset-btn');
 
 
@@ -24,12 +23,12 @@ let currentPathColor = null;
 
 // Configuration
 const COLORS = {
-    1: '#FF6961', // Pastel Red
-    2: '#77DD77', // Pastel Green
-    3: '#AEC6CF', // Pastel Blue
-    4: '#FDFD96', // Pastel Yellow
-    5: '#F49AC2', // Pastel Magenta
-    6: '#89CFF0'  // Pastel Cyan
+    1: '#FF3333', // Bright Red
+    2: '#33FF33', // Bright Green
+    3: '#3366FF', // Bright Blue
+    4: '#FFFF33', // Bright Yellow
+    5: '#FF33FF', // Bright Magenta
+    6: '#33FFFF'  // Bright Cyan
 };
 
 const LEVELS = [
@@ -110,11 +109,6 @@ function initGame() {
     window.addEventListener('touchend', handleInputEnd);
 
     resetBtn.addEventListener('click', () => loadLevel(currentLevel));
-    nextLevelBtn.addEventListener('click', () => {
-        currentLevel = (currentLevel + 1) % LEVELS.length;
-        loadLevel(currentLevel);
-        overlay.classList.remove('visible');
-    });
     
     requestAnimationFrame(gameLoop);
 }
@@ -377,9 +371,15 @@ function checkWinCondition() {
     // Let's stick to "All Connected" for now as the primary win condition
     
     if (allConnected) {
+        overlay.classList.add('visible');
+        gameArea.classList.add('flash-border');
+        
         setTimeout(() => {
-            overlay.classList.add('visible');
-        }, 300);
+            currentLevel = (currentLevel + 1) % LEVELS.length;
+            loadLevel(currentLevel);
+            overlay.classList.remove('visible');
+            gameArea.classList.remove('flash-border');
+        }, 1500);
     }
 }
 
