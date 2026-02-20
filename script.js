@@ -435,6 +435,24 @@ function render() {
         ctx.stroke();
     }
     
+    // Highlight cells that paths pass through
+    for (const [colorId, path] of Object.entries(paths)) {
+        if (!path || path.length < 1) continue;
+        const color = COLORS[colorId];
+        // Parse hex color to RGB and create a lighter shade
+        const r = parseInt(color.slice(1, 3), 16);
+        const g = parseInt(color.slice(3, 5), 16);
+        const b = parseInt(color.slice(5, 7), 16);
+        // Lighter shade: blend toward white and use transparency
+        const lr = Math.min(255, r + Math.floor((255 - r) * 0.5));
+        const lg = Math.min(255, g + Math.floor((255 - g) * 0.5));
+        const lb = Math.min(255, b + Math.floor((255 - b) * 0.5));
+        ctx.fillStyle = `rgba(${lr}, ${lg}, ${lb}, 0.4)`;
+        for (const point of path) {
+            ctx.fillRect(point.c * cellSize, point.r * cellSize, cellSize, cellSize);
+        }
+    }
+
     // Draw Paths
     for (const [colorId, path] of Object.entries(paths)) {
         if (!path || path.length < 2) continue;
