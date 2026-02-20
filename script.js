@@ -10,7 +10,7 @@ const levelDisplay = document.getElementById('level-display');
 const overlay = document.getElementById('ui-overlay');
 const overlayMessage = document.getElementById('overlay-message');
 const resetBtn = document.getElementById('reset-btn');
-
+const winAudio = new Audio('WORKERSWORKING.m4a');
 
 // Game State
 let currentLevel = 0;
@@ -373,6 +373,9 @@ function checkWinCondition() {
     if (allConnected) {
         overlay.classList.add('visible');
         gameArea.classList.add('flash-border');
+        
+        winAudio.currentTime = 0;
+        winAudio.play().catch(e => console.log("Audio play failed:", e));
         
         setTimeout(() => {
             currentLevel = (currentLevel + 1) % LEVELS.length;
