@@ -11,6 +11,21 @@ const overlay = document.getElementById('ui-overlay');
 const overlayMessage = document.getElementById('overlay-message');
 const resetBtn = document.getElementById('reset-btn');
 const winAudio = new Audio('WORKERSWORKING.m4a');
+winAudio.preload = 'auto';
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    // Play silently to unlock browser audio policy
+    winAudio.volume = 0;
+    winAudio.play().then(() => {
+        winAudio.pause();
+        winAudio.currentTime = 0;
+        winAudio.volume = 1;
+        console.log('Audio unlocked successfully');
+    }).catch(e => console.log('Audio unlock failed:', e));
+}
 
 // Game State
 let currentLevel = 0;
@@ -94,12 +109,16 @@ function initGame() {
     });
     
     // Event Listeners
-    canvas.addEventListener('mousedown', handleInputStart);
+    canvas.addEventListener('mousedown', (e) => {
+        unlockAudio();
+        handleInputStart(e);
+    });
     canvas.addEventListener('mousemove', handleInputMove);
     window.addEventListener('mouseup', handleInputEnd);
     
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault(); // Prevent scrolling
+        unlockAudio();
         handleInputStart(e.touches[0]);
     }, { passive: false });
     canvas.addEventListener('touchmove', (e) => {
@@ -375,7 +394,10 @@ function checkWinCondition() {
         gameArea.classList.add('flash-border');
         
         winAudio.currentTime = 0;
-        winAudio.play().catch(e => console.log("Audio play failed:", e));
+        winAudio.volume = 1;
+        winAudio.play().then(() => {
+            console.log('Win audio playing!');
+        }).catch(e => console.log('Audio play failed:', e));
         
         setTimeout(() => {
             currentLevel = (currentLevel + 1) % LEVELS.length;
